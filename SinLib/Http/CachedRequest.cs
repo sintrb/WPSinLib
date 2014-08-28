@@ -15,7 +15,19 @@ namespace Sin.Http
         private const String LOCK = ".lock";
         private const int LOCKTIMEOUT = 10000;
         private const int LOCKSLEEP = 500;
-        public CachedRequest(String dir)
+        private bool _Cached = true;
+        public bool Cached
+        {
+            get
+            {
+                return _Cached;
+            }
+            set
+            {
+                _Cached = value;
+            }
+        }
+        public CachedRequest(String dir="httpcache")
         {
             this.CacheDir = (dir.StartsWith("/") ? "" : "/") + dir + (dir.EndsWith("/") ? "" : "/");
             String CacheDriectory = CacheDir.TrimEnd('/');
@@ -103,6 +115,13 @@ namespace Sin.Http
 
         override public void ReadyRequest(String url, String method, Object data, RequestCallback cbk)
         {
+            if (!_Cached)
+            {
+                // not use cache
+                base.ReadyRequest(url, method, data, cbk);
+                return;
+            }
+
             String md5 = Sin.Utils.StringUtils.MD5(method + " " + url);
             String fln = CacheDir + md5;
             String flnlock = fln + LOCK;
