@@ -29,7 +29,7 @@
         <ScrollViewer x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
             <StackPanel Name="spMain">
                 <TextBox x:Name="txtUrl" Text="http://www.baidu.com/robots.txt"></TextBox>
-                <Button Tag="RequestPage.xaml" Content="Sin.Http.Request" Click="goRequest"></Button>
+                <Button Tag="RequestPage.xaml" Content="请求" Click="goRequest"></Button>
                 <TextBlock TextWrapping="Wrap" x:Name="tbResponse" Text="Empty"></TextBlock>
             </StackPanel>
         </ScrollViewer>

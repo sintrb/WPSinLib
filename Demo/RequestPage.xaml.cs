@@ -21,6 +21,7 @@ namespace Demo
         }
         private void goRequest(object sender, RoutedEventArgs e)
         {
+            tbResponse.Text = "正在请求...";
             req.GET(txtUrl.Text, (ok, co) =>
             {
                 String res = co.ResponseText;
