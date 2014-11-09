@@ -14,7 +14,7 @@ namespace Demo
 {
     public partial class CachedRequestPage : PhoneApplicationPage
     {
-        CachedRequest req = new CachedRequest();
+        CachedRequest req = new CachedRequest("cache");
         public CachedRequestPage()
         {
             InitializeComponent();
@@ -24,7 +24,7 @@ namespace Demo
         private void goRequest(object sender, RoutedEventArgs e)
         {
             tbResponse.Text = "正在请求...";
-            req.Cached = cbCached.IsChecked.Value;
+            req.UseCache = cbCached.IsChecked.Value;
             req.GET(txtUrl.Text, (ok, co) =>
             {
                 String res = co.ResponseText;
