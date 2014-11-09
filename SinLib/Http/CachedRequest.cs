@@ -6,28 +6,37 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
+
 namespace Sin.Http
 {
-    public class CachedRequest: Request
+    /// <summary>
+    /// 缓存方式请求，主要用于图片的获取
+    /// </summary>
+    public class CachedRequest : Request
     {
         private IsolatedStorageFile Iso = IsolatedStorageFile.GetUserStoreForApplication();
         private String CacheDir;
         private const String LOCK = ".lock";
         private const int LOCKTIMEOUT = 10000;
         private const int LOCKSLEEP = 500;
-        private bool _Cached = true;
-        public bool Cached
+
+        private bool _UseCache = true;
+        /// <summary>
+        /// 是否启用缓存
+        /// </summary>
+        public bool UseCache
         {
             get
             {
-                return _Cached;
+                return _UseCache;
             }
             set
             {
-                _Cached = value;
+                _UseCache = value;
             }
         }
-        public CachedRequest(String dir="httpcache")
+
+        public CachedRequest(String dir)
         {
             this.CacheDir = (dir.StartsWith("/") ? "" : "/") + dir + (dir.EndsWith("/") ? "" : "/");
             String CacheDriectory = CacheDir.TrimEnd('/');
@@ -36,7 +45,7 @@ namespace Sin.Http
             {
                 iso.CreateDirectory(CacheDriectory);
             }
-            DebugInfo(true);
+            // DebugInfo(true);
         }
 
         public void Clear()
@@ -44,7 +53,7 @@ namespace Sin.Http
             DebugInfo(true, true);
         }
 
-        public void DebugInfo(bool dellock=false, bool delall=false)
+        public void DebugInfo(bool dellock = false, bool delall = false)
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -70,26 +79,39 @@ namespace Sin.Http
                         Iso.DeleteFile(s);
                 }
             }
+            if (delall)
+                _CacheSize = 0;
         }
 
+        private long _CacheSize = -1;
+        private long _TempAdd = -1;
         public long CacheSize
         {
             get
             {
-                long size = 0;
-                foreach (String s in CacheFiles)
+                if (_CacheSize < 0)
                 {
-                    try
+                    _CacheSize = 0;
+                    System.Threading.ThreadPool.QueueUserWorkItem((o) =>
                     {
-                        IsolatedStorageFileStream isfs = Iso.OpenFile(s, FileMode.Open);
-                        size += isfs.Length;
-                        isfs.Close();
-                    }
-                    catch
-                    {
-                    }
+                        foreach (String s in CacheFiles)
+                        {
+                            try
+                            {
+                                IsolatedStorageFileStream isfs = Iso.OpenFile(s, FileMode.Open);
+                                _CacheSize += isfs.Length;
+                                isfs.Close();
+                            }
+                            catch
+                            {
+                            }
+                        }
+                        if (_TempAdd > 0)
+                            _CacheSize += _TempAdd;
+                        _TempAdd = -1;
+                    });
                 }
-                return size;
+                return _CacheSize;
             }
         }
 
@@ -112,25 +134,52 @@ namespace Sin.Http
             return Iso.OpenFile(fln, FileMode.Open);
         }
 
+        public String FileOfUrl(String url, String method = "GET")
+        {
+            String md5 = Sin.Utils.StringUtils.MD5(method + " " + url);
+            String fln = CacheDir + md5;
+            return fln;
+        }
+        public bool IsCachedUrl(String url, String method = "GET")
+        {
+            String fln = FileOfUrl(url, method);
+            return Iso.FileExists(fln);
+        }
+        public Uri UriOfUrl(String url, String method = "GET")
+        {
+            String fln = FileOfUrl(url, method);
+            return new Uri("isostore:" + fln);
+            /*
+            if (Iso.FileExists(fln))
+            {
+                return new Uri("isostore:" + fln);
+            }
+            else
+            {
+                return new Uri(url, UriKind.Absolute);
+            }
+             * */
+        }
 
         override public void ReadyRequest(String url, String method, Object data, RequestCallback cbk)
         {
-            if (!_Cached)
+            if (!UseCache)
             {
-                // not use cache
+                // 不启用缓存
                 base.ReadyRequest(url, method, data, cbk);
                 return;
             }
 
-            String md5 = Sin.Utils.StringUtils.MD5(method + " " + url);
-            String fln = CacheDir + md5;
+
+            // String md5 = Sin.Utils.StringUtils.MD5(method + " " + url);
+            String fln = FileOfUrl(url, method);
             String flnlock = fln + LOCK;
 
             lock (this)
             {
                 if (Iso.FileExists(fln))
                 {
-                    Debug.WriteLine("from cache of " + fln + " " + url);
+                    //Debug.WriteLine("from cache of " + fln + " " + url);
                     using (Stream stream = Iso.OpenFile(fln, FileMode.Open))
                     {
                         CallbackObject co = new CallbackObject();
@@ -147,6 +196,11 @@ namespace Sin.Http
                         {
                             if (co.Response.ContentLength > 0)
                             {
+                                if (_TempAdd < 0)
+                                    _CacheSize += co.Response.ContentLength;
+                                else
+                                    _TempAdd = co.Response.ContentLength;
+
                                 Stream sr = null;
                                 Stream sw = null;
                                 try
@@ -186,7 +240,7 @@ namespace Sin.Http
 
                     if (Iso.FileExists(flnlock))
                     {
-                        Debug.WriteLine("lock file " + flnlock+ " " + url);
+                        //Debug.WriteLine("lock file " + flnlock+ " " + url);
                         System.Threading.ThreadPool.QueueUserWorkItem((o) =>
                         {
                             int timeout = 0;
@@ -203,7 +257,7 @@ namespace Sin.Http
                                     break;
                             } while (true);
 
-                            Debug.WriteLine("exit lock file " + fln + " " + url);
+                            //Debug.WriteLine("exit lock file " + fln + " " + url);
                             if (Iso.FileExists(fln))
                             {
                                 lock (this)
