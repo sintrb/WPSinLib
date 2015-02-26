@@ -79,5 +79,31 @@ namespace Sin.Utils
         {
             return String.Format("{0}{1}{2}", url, url.IndexOf('?') < 0 ? '?' : '&', parms);
         }
+
+        public static String Bytes2Hexstr(byte[] dats, String pre = "")
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in dats)
+            {
+                sb.Append(String.Format("{0}{1:x2}", pre, b));
+            }
+            return sb.ToString();
+        }
+
+        public static byte[] Hexstr2Bytes(String str, String pre = "")
+        {
+            System.Text.RegularExpressions.Regex r = new Regex(pre + "([a-fA-F0-9]{2})");
+            List<byte> bts = new List<byte>();
+            foreach (Match m in r.Matches(str))
+            {
+                bts.Add(Convert.ToByte(m.Groups[1].Value, 16));
+            }
+            return bts.ToArray();
+        }
+
+        public static String NumberCount(long v, long max = 10)
+        {
+            return v <= 0 ? "" : (v < max ? "" + v : (v - 1) + "+");
+        }
     }
 }

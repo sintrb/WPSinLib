@@ -27,5 +27,13 @@ namespace Sin.Utils
                 return DateTime.Now.ToString("yyyy-MM-dd");
             }
         }
+
+        public static String NowString
+        {
+            get
+            {
+                return DateTime.Now.ToString("yyyyMMddHHmmss");
+            }
+        }
     }
 }

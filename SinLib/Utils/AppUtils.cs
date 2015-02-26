@@ -24,6 +24,14 @@ namespace Sin.Utils
             }
         }
 
+        public static String DeviceName
+        {
+            get
+            {
+                return TryGet("DeviceName");
+            }
+        }
+
         private static String Bytes2String(byte[] bts)
         {
             StringBuilder sb = new StringBuilder();
@@ -45,6 +53,25 @@ namespace Sin.Utils
             catch
             {
                 return "";
+            }
+        }
+
+        static public bool IsWifi
+        {
+            get
+            {
+                if (
+                    Microsoft.Phone.Net.NetworkInformation.NetworkInterface.NetworkInterfaceType == Microsoft.Phone.Net.NetworkInformation.NetworkInterfaceType.Wireless80211
+                    ||
+                    Microsoft.Phone.Net.NetworkInformation.NetworkInterface.NetworkInterfaceType == Microsoft.Phone.Net.NetworkInformation.NetworkInterfaceType.Ethernet
+                    )
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }

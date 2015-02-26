@@ -38,5 +38,10 @@ namespace Sin.Utils
                 mdt.ContentIdentifier = appid;
             mdt.Show();
         }
+
+        public async static void LunchByUrl(String url)
+        {
+            await Windows.System.Launcher.LaunchUriAsync(new Uri(url));
+        }
     }
 }
