@@ -51,6 +51,9 @@
                 <Button Tag="/RequestPage.xaml" Content="Sin.Http.Request"></Button>
                 <Button Tag="/CachedRequestPage.xaml" Content="Sin.Http.CachedRequest"></Button>
                 <Button Tag="/ImagesViewerPage.xaml" Content="ImagesViewerPage"></Button>
+                <Button Content="ExShortUtils.ShowToast" Click="Button_Click"/>
+                <Button Content="ShortUtils.ShowToast" Click="Button_Click_1"/>
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

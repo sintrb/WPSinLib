@@ -23,7 +23,10 @@ namespace Demo
 
             foreach (Button b in (from n in spMain.Children where n is Button select n))
             {
-                b.Click += b_Click;
+                if (b.Tag is String)
+                {
+                    b.Click += b_Click;
+                }
             }
         }
 
@@ -31,6 +34,19 @@ namespace Demo
         {
             Debug.WriteLine((sender as Button).Tag as String);
             NavigationService.Navigate(new Uri((sender as Button).Tag as String, UriKind.Relative));
+
+        }
+
+
+        int ix = 0;
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Sin.Utils.ExShortUtils.ShowToast("Hello World! " + ix++);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            Sin.Utils.ShortUtils.ShowToast("Hello World! " + ix++);
         }
     }
 }
