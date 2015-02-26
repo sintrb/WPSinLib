@@ -49,7 +49,9 @@ namespace Sin.Http
                             _ResponseText = "";
                         stm.Close();
                     }
+#if DEBUG
                     Debug.WriteLine("TXT: " + _ResponseText);
+#endif
                 }
                 return _ResponseText;
             }
@@ -80,7 +82,7 @@ namespace Sin.Http
         }
     }
     public delegate bool RequestCallback(bool ok, CallbackObject co);
-
+    public delegate bool JObjectCallback(bool ok, JObject jo);
     public class Request
     {
         private Dictionary<String, String> _Headers = null;
@@ -114,6 +116,11 @@ namespace Sin.Http
             ReadyRequest(url, "DELETE", null, cbk);
         }
 
+        public void PATCH(String url, Object data, RequestCallback cbk)
+        {
+            ReadyRequest(url, "PATCH", data, cbk);
+        }
+
         virtual public void ReadyRequest(String url, String method, Object data, RequestCallback cbk)
         {
             Debug.WriteLine("REQ: " + method + " " + url);
@@ -125,7 +132,7 @@ namespace Sin.Http
             if (_Headers != null && _Headers.Count > 0)
             {
                 Dictionary<String, String>.Enumerator em = _Headers.GetEnumerator();
-                System.Diagnostics.Debug.WriteLine("headers.count = " + Headers.Count);
+                //System.Diagnostics.Debug.WriteLine("headers.count = " + Headers.Count);
                 while (em.MoveNext())
                 {
                     try
@@ -137,6 +144,11 @@ namespace Sin.Http
                         System.Diagnostics.Debug.WriteLine(String.Format("\tFail: {0}={1}", em.Current.Key, em.Current.Value));
                     }
                 }
+            }
+
+            if (method == "DELETE")
+            {
+                req.ContentType = "application/x-www-form-urlencoded";
             }
 
             if (data == null)
@@ -198,7 +210,9 @@ namespace Sin.Http
                 try
                 {
                     co.Response = req.EndGetResponse(asyncResult) as HttpWebResponse;
+#if DEBUG
                     Debug.WriteLine("RES: " + (int)co.Response.StatusCode + "(" + co.Response.ContentLength + ") " + req.RequestUri.ToString());
+#endif
                     cbk(true, co);
                 }
                 catch (WebException e)

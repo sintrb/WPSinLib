@@ -12,7 +12,7 @@ namespace Sin.Http
     /// <summary>
     /// 缓存方式请求，主要用于图片的获取
     /// </summary>
-    public class CachedRequest : Request
+    public class CachedRequest: Request
     {
         private IsolatedStorageFile Iso = IsolatedStorageFile.GetUserStoreForApplication();
         private String CacheDir;
@@ -53,7 +53,7 @@ namespace Sin.Http
             DebugInfo(true, true);
         }
 
-        public void DebugInfo(bool dellock = false, bool delall = false)
+        public void DebugInfo(bool dellock=false, bool delall=false)
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -79,7 +79,7 @@ namespace Sin.Http
                         Iso.DeleteFile(s);
                 }
             }
-            if (delall)
+            if(delall)
                 _CacheSize = 0;
         }
 
@@ -106,7 +106,7 @@ namespace Sin.Http
                             {
                             }
                         }
-                        if (_TempAdd > 0)
+                        if(_TempAdd>0)
                             _CacheSize += _TempAdd;
                         _TempAdd = -1;
                     });
@@ -134,7 +134,7 @@ namespace Sin.Http
             return Iso.OpenFile(fln, FileMode.Open);
         }
 
-        public String FileOfUrl(String url, String method = "GET")
+        public String FileOfUrl(String url, String method="GET")
         {
             String md5 = Sin.Utils.StringUtils.MD5(method + " " + url);
             String fln = CacheDir + md5;
@@ -145,7 +145,7 @@ namespace Sin.Http
             String fln = FileOfUrl(url, method);
             return Iso.FileExists(fln);
         }
-        public Uri UriOfUrl(String url, String method = "GET")
+        public Uri UriOfUrl(String url, String method="GET")
         {
             String fln = FileOfUrl(url, method);
             return new Uri("isostore:" + fln);
@@ -196,7 +196,7 @@ namespace Sin.Http
                         {
                             if (co.Response.ContentLength > 0)
                             {
-                                if (_TempAdd < 0)
+                                if(_TempAdd<0)
                                     _CacheSize += co.Response.ContentLength;
                                 else
                                     _TempAdd = co.Response.ContentLength;
